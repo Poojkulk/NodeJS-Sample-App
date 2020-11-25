@@ -11,50 +11,89 @@ pool:
 
 steps:
 - task: NodeTool@0
+  displayName: 'Use Node version'
   inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
+    versionSpec: 10.1
 
-
-- task: Npm@1
-  displayName: 'npm custom'
-  inputs:
-    command: custom
-    workingDir: '$(Build.SourcesDirectory)'
-    verbose: false
-    customCommand: 'install --global gatsby-cli'
-
-- task: Npm@1
+- task: Npm@0
   displayName: 'npm install'
   inputs:
-    workingDir: '$(Build.SourcesDirectory)'
-    verbose: false
+    arguments: '--force'
+
+- task: ArchiveFiles@1
+  displayName: 'Archive files '
+  inputs:
+    rootFolder: '$(System.DefaultWorkingDirectory)'
+    includeRootFolder: false
 
 - task: CopyFiles@2
-  displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+  displayName: 'Copy File to: $(TargetFolder)'
   inputs:
-    SourceFolder: '$(agent.builddirectory)'
-    Contents: |
-     **\*.js
-      **\*.json
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    SourceFolder: '$(Build.ArtifactStagingDirectory)'
+    Contents: '$(Build.BuildId).zip'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)\ArtifactsToBePublished'
 
 - task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: cart'
+  displayName: 'Publish Artifact: drop'
   inputs:
-    ArtifactName: cart
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)\ArtifactsToBePublished'
 
-- task: ArchiveFiles@2
-  displayName: 'Archive $(build.artifactstagingdirectory)'
+- task: AzureRmWebAppDeployment@3
+  displayName: 'Deploy Azure App Service'
   inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    azureSubscription: 'sampleappss - Azure'
+    appType: applinux
+    WebAppName: sampleappss
+    ImageSource: Builtin
+    RuntimeStack: 'NODE|10.1'
+    StartupCommand: 'npm start'
 
-- task: AzureRmWebAppDeployment@4
-  displayName: 'Azure App Service Deploy: Hosptial'
-  inputs:
-    azureSubscription: 'Free Trial (de41a4b5-07b4-4eff-ba63-33c5643b5f9a)'
-    appType: webAppLinux
-    WebAppName: Hosptial
-    packageForLinux: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+# steps:
+# - task: NodeTool@0
+#   inputs:
+#     versionSpec: '10.x'
+#   displayName: 'Install Node.js'
+
+
+# - task: Npm@1
+#   displayName: 'npm custom'
+#   inputs:
+#     command: custom
+#     workingDir: '$(Build.SourcesDirectory)'
+#     verbose: false
+#     customCommand: 'install --global gatsby-cli'
+
+# - task: Npm@1
+#   displayName: 'npm install'
+#   inputs:
+#     workingDir: '$(Build.SourcesDirectory)'
+#     verbose: false
+
+# - task: CopyFiles@2
+#   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+#   inputs:
+#     SourceFolder: '$(agent.builddirectory)'
+#     Contents: |
+#      **\*.js
+#       **\*.json
+#     TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+# - task: PublishBuildArtifacts@1
+#   displayName: 'Publish Artifact: cart'
+#   inputs:
+#     ArtifactName: cart
+
+# - task: ArchiveFiles@2
+#   displayName: 'Archive $(build.artifactstagingdirectory)'
+#   inputs:
+#     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+
+# - task: AzureRmWebAppDeployment@4
+#   displayName: 'Azure App Service Deploy: Hosptial'
+#   inputs:
+#     azureSubscription: 'Free Trial (de41a4b5-07b4-4eff-ba63-33c5643b5f9a)'
+#     appType: webAppLinux
+#     WebAppName: Hosptial
+#     packageForLinux: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
 
 
